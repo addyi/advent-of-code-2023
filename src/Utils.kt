@@ -20,6 +20,15 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
  */
 fun Any?.println() = println(this)
 
+/**
+ * Searches for the first digit word (one,two,...) or an actual digit (1,2,...) in the string.
+ */
+fun String.findDigitWord(): String? {
+    val regex = """(\d|one|two|three|four|five|six|seven|eight|nine)""".toRegex()
+
+    return regex.find(this)?.value
+}
+
 fun String.replaceDigitWordsWithDigit(): String = this
     .replace("one", "1")
     .replace("two", "2")

@@ -9,10 +9,17 @@ fun main() {
 
     fun part2(input: List<String>): Int = input
         .sumOf { calibrationLine ->
-            val regex = """(one|two|three|four|five|six|seven|eight|nine|\d)""".toRegex()
-            val matchResults = regex.findAll(calibrationLine)
-            val firstDigit = matchResults.first().value.replaceDigitWordsWithDigit()
-            val lastDigit = matchResults.last().value.replaceDigitWordsWithDigit()
+            val firstDigit = calibrationLine
+                .findDigitWord()!!
+                .replaceDigitWordsWithDigit()
+
+            val lastDigit = calibrationLine
+                .foldRight("") { char, acc ->
+                    acc.findDigitWord() ?: (char + acc)
+                }
+                .findDigitWord()!!
+                .replaceDigitWordsWithDigit()
+
             (firstDigit + lastDigit).toInt()
         }
 
@@ -25,5 +32,5 @@ fun main() {
 
     val input = readInput("Day01")
     part1(input).println()
-    part2(input).println() // Wrong result ¯\_(ツ)_/¯
+    part2(input).println()
 }
