@@ -2,33 +2,30 @@ fun main() {
     fun part1(input: List<String>): Int = input
         .map { game -> game.toGame() }
         .fold(0) { acc: Int, game: Game ->
-            game.subGames
-                .flatten()
-                .any { cube ->
-                    when (cube) {
-                        is Cube.Blue -> cube.numberOfCubes !in 0..14
-                        is Cube.Green -> cube.numberOfCubes !in 0..13
-                        is Cube.Red -> cube.numberOfCubes !in 0..12
-                    }
+            val isImpossibleGame = game.cubes.any { cube ->
+                when (cube) {
+                    is Cube.Blue -> cube.numberOfCubes !in 0..14
+                    is Cube.Green -> cube.numberOfCubes !in 0..13
+                    is Cube.Red -> cube.numberOfCubes !in 0..12
                 }
-                .let {
-                    if (it) {
-                        acc
-                    } else {
-                        acc + game.gameName.getGameNumber()
-                    }
-                }
+            }
+
+            if (isImpossibleGame) {
+                acc
+            } else {
+                acc + game.gameName.getGameNumber()
+            }
         }
 
     fun part2(input: List<String>): Int = input
         .sumOf { game ->
-            val cubes: List<Cube> = game.toGame().subGames.flatten()
+            val cubes: List<Cube> = game.toGame().cubes
 
-            val minNumberOfRedCubes = cubes.filterIsInstance<Cube.Red>().maxBy { it.numberOfCubes }.numberOfCubes
-            val minNumberOfBlueCubes = cubes.filterIsInstance<Cube.Blue>().maxBy { it.numberOfCubes }.numberOfCubes
-            val minNumberOfGreenCubes = cubes.filterIsInstance<Cube.Green>().maxBy { it.numberOfCubes }.numberOfCubes
+            val fewestNumOfRedCubes = cubes.filterIsInstance<Cube.Red>().maxBy { it.numberOfCubes }.numberOfCubes
+            val fewestNumOfBlueCubes = cubes.filterIsInstance<Cube.Blue>().maxBy { it.numberOfCubes }.numberOfCubes
+            val fewestNumOfGreenCubes = cubes.filterIsInstance<Cube.Green>().maxBy { it.numberOfCubes }.numberOfCubes
 
-            (minNumberOfRedCubes * minNumberOfBlueCubes * minNumberOfGreenCubes)
+            (fewestNumOfRedCubes * fewestNumOfBlueCubes * fewestNumOfGreenCubes)
         }
 
     val testInput = readInput("Day02_test")
@@ -49,10 +46,7 @@ fun main() {
 
 private fun String.getGameNumber(): Int = this.takeLastWhile { it.isDigit() }.toInt()
 
-private data class Game(
-    val gameName: String,
-    val subGames: List<List<Cube>>
-)
+private data class Game(val gameName: String, val cubes: List<Cube>)
 
 private fun String.toGame(): Game = this
     .split(": ")
@@ -64,13 +58,9 @@ private fun String.toGame(): Game = this
     .let { (gameName, subGames) ->
         Game(
             gameName = gameName,
-            subGames = subGames
-                .split("; ")
-                .map { subGame ->
-                    subGame
-                        .split(", ")
-                        .map { cube -> cube.toCube() }
-                }
+            cubes = subGames
+                .split("; ", ", ")
+                .map { cube -> cube.toCube() }
         )
     }
 
@@ -90,17 +80,18 @@ private fun String.toCube(): Cube = this
                 val cubeInfo = matchResult.groupValues
                 check(cubeInfo.size == 3) { "Cube breakdown failed with $cubeInfo" }
 
-                cubeInfo[1] to cubeInfo[2]
+                cubeInfo[1] to cubeInfo[2]// first is always the whole match
             }
             ?.toCube()
             ?: throw IllegalStateException("Cube regex failed for $this")
     }
 
-private fun Pair<String, String>.toCube(): Cube = this.let { (numOfCubes, cubeName) ->
-    when (cubeName) {
-        "red" -> Cube.Red(numOfCubes.toInt())
-        "green" -> Cube.Green(numOfCubes.toInt())
-        "blue" -> Cube.Blue(numOfCubes.toInt())
-        else -> throw IllegalStateException("No match for ($numOfCubes, $cubeName)")
+private fun Pair<String, String>.toCube(): Cube = this
+    .let { (numOfCubes, cubeName) ->
+        when (cubeName) {
+            "red" -> Cube.Red(numOfCubes.toInt())
+            "green" -> Cube.Green(numOfCubes.toInt())
+            "blue" -> Cube.Blue(numOfCubes.toInt())
+            else -> throw IllegalStateException("No match for ($numOfCubes, $cubeName)")
+        }
     }
-}
