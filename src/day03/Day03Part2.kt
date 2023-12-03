@@ -1,3 +1,8 @@
+package day03
+
+import println
+import readInput
+
 fun main() {
     fun part2(input: List<String>): Int = input
         .findGears()
@@ -6,13 +11,13 @@ fun main() {
         }
 
 
-    val testInput = readInput("Day03_test")
+    val testInput = readInput("day03/Day03_test")
     part2(testInput).also {
         it.println()
         check(it == 467835)
     }
 
-    val input = readInput("Day03")
+    val input = readInput("day03/Day03")
     part2(input).println()
 }
 

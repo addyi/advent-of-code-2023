@@ -1,3 +1,8 @@
+package day02
+
+import println
+import readInput
+
 fun main() {
     fun part1(input: List<String>): Int = input
         .map { game -> game.toGame() }
@@ -28,7 +33,7 @@ fun main() {
             (fewestNumOfRedCubes * fewestNumOfBlueCubes * fewestNumOfGreenCubes)
         }
 
-    val testInput = readInput("Day02_test")
+    val testInput = readInput("day02/Day02_test")
     part1(testInput).also {
         it.println()
         check(it == 8)
@@ -39,7 +44,7 @@ fun main() {
         check(it == 2286)
     }
 
-    val input = readInput("Day02")
+    val input = readInput("day02/Day02")
     part1(input).println()
     part2(input).println()
 }

@@ -1,3 +1,8 @@
+package day03
+
+import println
+import readInput
+
 fun main() {
     fun part1(input: List<String>): Int {
         val numbers = emptyList<Int>().toMutableList()
@@ -27,13 +32,13 @@ fun main() {
         return numbers.sumOf { it }
     }
 
-    val testInput = readInput("Day03_test")
+    val testInput = readInput("day03/Day03_test")
     part1(testInput).also {
         it.println()
         check(it == 4361)
     }
 
-    val input = readInput("Day03")
+    val input = readInput("day03/Day03")
     part1(input).println()
     //part2(input).println()
 }
