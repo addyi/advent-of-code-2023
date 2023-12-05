@@ -1,4 +1,4 @@
-package day03
+package day04
 
 import println
 import readInput
@@ -45,8 +45,15 @@ fun main() {
     }
 
     val input = readInput("day04/Day04")
-    part1(input).println()
-    part2(input).println()
+    part1(input).also {
+        it.println()
+        check(it == 25174)
+    }
+
+    part2(input).also {
+        it.println()
+        check(it == 6420979)
+    }
 }
 
 private fun String.extractNumbers(): List<Int> = this
