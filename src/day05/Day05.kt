@@ -1,5 +1,6 @@
 package day05
 
+import kotlinx.coroutines.*
 import println
 import readInput
 import kotlin.math.absoluteValue
@@ -15,7 +16,7 @@ fun main() {
     }
 
 
-    fun part2(input: List<String>): Long {
+    fun part2(input: List<String>): Long = runBlocking {
         val seeds = input[0]
             .dropWhile { !it.isDigit() }
             .split(" ")
@@ -26,9 +27,12 @@ fun main() {
 
         val convertSeedToLocation: (Long) -> Long = seedToLocationConverter(input)
 
-        return seeds.minOf { seedRanges ->
-            seedRanges.minOf { seed -> convertSeedToLocation(seed) }
-        }
+        seeds
+            .map { seedRanges ->
+                async(Dispatchers.Default) { seedRanges.minOf { seed -> convertSeedToLocation(seed) } }
+            }
+            .awaitAll()
+            .min()
     }
 
     val testInput = readInput("day05/Day05_test")
@@ -53,7 +57,7 @@ fun main() {
             it.println()
             check(it == 37806486L)
         }
-    }.also { println("Part 2 took ${it.inWholeSeconds}s") } // ~ 2 min
+    }.also { println("Part 2 took ${it.inWholeSeconds}s") } // ~ 36s
 }
 
 private fun List<RangeMapping>.getMapped(id: Long): Long = this
