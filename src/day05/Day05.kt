@@ -3,34 +3,15 @@ package day05
 import println
 import readInput
 import kotlin.math.absoluteValue
+import kotlin.time.measureTime
 
 fun main() {
     fun part1(input: List<String>): Long {
         val seeds = input[0].dropWhile { !it.isDigit() }.split(" ").map { it.toLong() }
 
-        val seedToSoilMap = input.getMapWithName("seed-to-soil map:").getRangeMapping()
-        val soilToFertilizerMap = input.getMapWithName("soil-to-fertilizer map:").getRangeMapping()
-        val fertilizerToWaterMap = input.getMapWithName("fertilizer-to-water map:").getRangeMapping()
-        val waterToLightMap = input.getMapWithName("water-to-light map:").getRangeMapping()
-        val lightToTemperatureMap = input.getMapWithName("light-to-temperature map:").getRangeMapping()
-        val temperatureToHumidityMap = input.getMapWithName("temperature-to-humidity map:").getRangeMapping()
-        val humidityToLocationMap = input.getMapWithName("humidity-to-location map:").getRangeMapping()
+        val convertSeedToLocation: (Long) -> Long = seedToLocationConverter(input)
 
-        return seeds.minOf {
-            seedToSoilMap.getMapped(it).let { soil ->
-                soilToFertilizerMap.getMapped(soil).let { fertilizer ->
-                    fertilizerToWaterMap.getMapped(fertilizer).let { water ->
-                        waterToLightMap.getMapped(water).let { light ->
-                            lightToTemperatureMap.getMapped(light).let { temperature ->
-                                temperatureToHumidityMap.getMapped(temperature).let { humidity ->
-                                    humidityToLocationMap.getMapped(humidity)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        return seeds.minOf { convertSeedToLocation(it) }
     }
 
 
@@ -41,36 +22,13 @@ fun main() {
             .map { it.toLong() }
             .windowed(2, 2)
             .map { LongRange(it[0], (it[0] + it[1]) - 1) }
-            .sortedBy { it.first }
             .mergeOverlappingRanges()
 
-        val seedToSoilMap = input.getMapWithName("seed-to-soil map:").getRangeMapping()
-        val soilToFertilizerMap = input.getMapWithName("soil-to-fertilizer map:").getRangeMapping()
-        val fertilizerToWaterMap = input.getMapWithName("fertilizer-to-water map:").getRangeMapping()
-        val waterToLightMap = input.getMapWithName("water-to-light map:").getRangeMapping()
-        val lightToTemperatureMap = input.getMapWithName("light-to-temperature map:").getRangeMapping()
-        val temperatureToHumidityMap = input.getMapWithName("temperature-to-humidity map:").getRangeMapping()
-        val humidityToLocationMap = input.getMapWithName("humidity-to-location map:").getRangeMapping()
+        val convertSeedToLocation: (Long) -> Long = seedToLocationConverter(input)
 
-        return seeds
-            .map { seedRanges ->
-                seedRanges.minOf {
-                    seedToSoilMap.getMapped(it).let { soil ->
-                        soilToFertilizerMap.getMapped(soil).let { fertilizer ->
-                            fertilizerToWaterMap.getMapped(fertilizer).let { water ->
-                                waterToLightMap.getMapped(water).let { light ->
-                                    lightToTemperatureMap.getMapped(light).let { temperature ->
-                                        temperatureToHumidityMap.getMapped(temperature).let { humidity ->
-                                            humidityToLocationMap.getMapped(humidity)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            .min()
+        return seeds.minOf { seedRanges ->
+            seedRanges.minOf { seed -> convertSeedToLocation(seed) }
+        }
     }
 
     val testInput = readInput("day05/Day05_test")
@@ -90,10 +48,12 @@ fun main() {
         check(it == 1181555926L)
     }
 
-    part2(input).also {
-        it.println()
-        check(it == 37806486L)
-    }
+    measureTime {
+        part2(input).also {
+            it.println()
+            check(it == 37806486L)
+        }
+    }.also { println("Part 2 took ${it.inWholeSeconds}s") } // ~ 2 min
 }
 
 private fun List<RangeMapping>.getMapped(id: Long): Long = this
@@ -144,4 +104,30 @@ private fun List<LongRange>.mergeOverlappingRanges(): List<LongRange> {
     // Add the last range
     reducedSetOfRanges.add(currentRange)
     return reducedSetOfRanges
+}
+
+private fun seedToLocationConverter(input: List<String>): (Long) -> Long {
+    val seedToSoilMap = input.getMapWithName("seed-to-soil map:").getRangeMapping()
+    val soilToFertilizerMap = input.getMapWithName("soil-to-fertilizer map:").getRangeMapping()
+    val fertilizerToWaterMap = input.getMapWithName("fertilizer-to-water map:").getRangeMapping()
+    val waterToLightMap = input.getMapWithName("water-to-light map:").getRangeMapping()
+    val lightToTemperatureMap = input.getMapWithName("light-to-temperature map:").getRangeMapping()
+    val temperatureToHumidityMap = input.getMapWithName("temperature-to-humidity map:").getRangeMapping()
+    val humidityToLocationMap = input.getMapWithName("humidity-to-location map:").getRangeMapping()
+
+    return { seed ->
+        seedToSoilMap.getMapped(seed).let { soil ->
+            soilToFertilizerMap.getMapped(soil).let { fertilizer ->
+                fertilizerToWaterMap.getMapped(fertilizer).let { water ->
+                    waterToLightMap.getMapped(water).let { light ->
+                        lightToTemperatureMap.getMapped(light).let { temperature ->
+                            temperatureToHumidityMap.getMapped(temperature).let { humidity ->
+                                humidityToLocationMap.getMapped(humidity)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
