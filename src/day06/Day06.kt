@@ -8,8 +8,8 @@ fun main() {
     val testInput = Path("src/day06/Day06_test.txt")
     val input = Path("src/day06/Day06.txt")
 
-    testInput.part1().also { check(it==288) }
-    input.part1().also { check(it==303600) }
+    testInput.part1().also { check(it == 288) }
+    input.part1().also { check(it == 303600) }
 
 //    measureTime {
 //        input.part1()
@@ -34,7 +34,7 @@ private fun Path.part1() = this.readLines()
         it.size
     }
     .let {
-        it.reduce { acc, i -> acc*i }
+        it.reduce { acc, i -> acc * i }
     }
     .also(::println)
 
