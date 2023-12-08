@@ -1,45 +1,66 @@
 package day08
 
+import leastCommonMultiple
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
 import kotlin.time.measureTime
 
 fun main() {
-    val testInput = Path("src/day08/Day08_part1_test.txt")
+    val testInputPart1 = Path("src/day08/Day08_part1_test.txt")
+    val testInputPart2 = Path("src/day08/Day08_part2_test.txt")
     val input = Path("src/day08/Day08.txt")
 
-    testInput.part1().also { check(it == 6) }
-    input.part1().also { check(it == 13771) }
+    testInputPart1.part1().also { check(it == 6) }
 
     measureTime {
-        input.part1()
+        input.part1().also { check(it == 13771) }
     }.also { println("Part 1 took $it") }
+
+    println()
+
+    testInputPart2.part2().also { check(it == 6L) }
+
+    println()
+
+    measureTime {
+        input.part2().also { check(it == 13129439557681L) }
+    }.also { println("Part 2 took $it") }
 }
 
 private fun Path.part1() = this.readLines()
     .parseInput()
+    .let { (lrInstructions, nodes) -> traverseNodesIterative(nodes, lrInstructions.iterator()) }
+    .also { println("Result: $it") }
+
+private fun Path.part2() = this.readLines()
+    .parseInput()
     .let { (lrInstructions, nodes) ->
-        // traverseNodes(nodes, "AAA", lrInstructions.iterator(), 0) // fixme: stack overflow ^^
-        traverseNodesIterative(nodes, lrInstructions.iterator())
+        nodes
+            .filter { it.key.last() == 'A' }
+            .map { it.key }
+            .also { println("Start nodes $it") }
+            .map { startNode -> traverseNodesIterativePart2(nodes, startNode, lrInstructions.iterator()) }
+            .also { println("Steps till 'Z': $it") }
+            .reduce { acc, i -> leastCommonMultiple(acc, i) }
     }
-    .also(::println)
+    .also { println("Result: $it") }
 
-private fun traverseNodesRecursive(
+
+private fun traverseNodesIterativePart2(
     nodes: Map<String, Pair<String, String>>,
-    currentNode: String,
-    lrInstructions: Iterator<Char>,
-    numberOfNavigationSteps: Int
-): Int {
-    if (currentNode == "ZZZ") return numberOfNavigationSteps
+    startNode: String,
+    lrInstructions: Iterator<Char>
+): Long {
+    var currentNode = startNode
+    var numberOfNavigationSteps = 0L
 
-    val node = nodes[currentNode] ?: error("unknown key $currentNode")
+    while (!currentNode.endsWith('Z')) {
+        currentNode = if (lrInstructions.next() == 'L') nodes[currentNode]!!.first else nodes[currentNode]!!.second
+        numberOfNavigationSteps++
+    }
 
-    // println("$currentNode: $node")
-
-    val nextNode = if (lrInstructions.next() == 'L') node.first else node.second
-
-    return traverseNodesRecursive(nodes, nextNode, lrInstructions, numberOfNavigationSteps + 1)
+    return numberOfNavigationSteps
 }
 
 
@@ -81,7 +102,7 @@ private fun List<String>.parseInput(): Pair<CircularString, Map<String, Pair<Str
     return CircularString(lrInstructions) to nodes
 }
 
-class CircularString(private val lrInstructions: String) : Iterable<Char> {
+private class CircularString(private val lrInstructions: String) : Iterable<Char> {
 
     override fun iterator() = object : Iterator<Char> {
 
