@@ -10,7 +10,95 @@ fun main() {
 
     testInput.part1().also { check(it == 6440) }
     input.part1().also { check(it == 253313241) }
+
+    testInput.part2().also { check(it == 5905) }
+    input.part2().also { check(it == 253362743) }
 }
+
+private fun Path.part2() = this
+    .readLines()
+    .map { handWithBid ->
+        handWithBid
+            .split(" ")
+            .let {
+                Triple(
+                    first = it.first().toTypeWithJoker(),
+                    second = JokerHand(it.first()),
+                    third = it.last().toInt()
+                )
+            }
+    }
+    .sortedWith(
+        compareBy(
+            { (type, _, _) -> type },
+            { (_, hand, _) -> hand }
+        )
+    )
+    .reversed()
+    .onEach(::println)
+    .foldIndexed(0) { index, acc, (_, _, bid) ->
+        acc + (index + 1) * bid
+    }
+    .also(::println)
+
+private fun String.toTypeWithJoker() = this
+    .let { hand ->
+        val jokerCount = hand.count { it == 'J' }
+        val minType = hand.filter { it != 'J' }.toType()
+
+        when (minType) {
+            Type.FiveOfAKind -> minType
+            Type.FourOfAKind -> if (jokerCount == 1) Type.FiveOfAKind else minType
+            Type.FullHouse -> minType
+            Type.ThreeOfAKind -> when (jokerCount) {
+                0 -> minType
+                1 -> Type.FourOfAKind
+                2 -> Type.FiveOfAKind
+                else -> error("ThreeOfAKind: More then 3 joker ($jokerCount) for $this")
+            }
+
+            Type.TwoPair -> when (jokerCount) {
+                0 -> minType
+                1 -> Type.FullHouse
+                else -> error("TwoPair: More then 2 joker ($jokerCount) for $this")
+            }
+
+            Type.OnePair -> when (jokerCount) {
+                0 -> minType
+                1 -> Type.ThreeOfAKind
+                2 -> Type.FourOfAKind
+                3 -> Type.FiveOfAKind
+                else -> error("OnePair: More then 3 joker ($jokerCount) for $this")
+            }
+
+            Type.HighCard -> when (jokerCount) {
+                0 -> minType
+                1 -> Type.OnePair
+                2 -> Type.ThreeOfAKind
+                3 -> Type.FourOfAKind
+                4 -> Type.FiveOfAKind
+                5 -> Type.FiveOfAKind
+                else -> error("HighCard: More then 4 joker ($jokerCount) for $this")
+            }
+        }
+    }
+
+private data class JokerHand(val cards: String) : Comparable<JokerHand> {
+
+    override fun compareTo(other: JokerHand): Int {
+        for ((thisCard, otherCard) in this.cards.zip(other.cards)) {
+            if (thisCard != otherCard) {
+                return CARD_RANK.indexOf(thisCard).compareTo(CARD_RANK.indexOf(otherCard))
+            }
+        }
+        return 0
+    }
+
+    private companion object {
+        private const val CARD_RANK = "AKQT98765432J"
+    }
+}
+
 
 private fun Path.part1() = this
     .readLines()
