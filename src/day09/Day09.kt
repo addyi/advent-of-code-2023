@@ -14,7 +14,46 @@ fun main() {
     measureTime {
         input.part1().also { check(it == 1953784198L) }
     }.also { println("Part 1 took $it") }
+
+    testInput.part2().also { check(it == 2L) }
+
+
+    measureTime {
+        input.part2().also { check(it == 957L) }
+    }.also { println("Part 2 took $it") }
 }
+
+private fun Path.part2() = this.readLines()
+    .sumOf { numberRow ->
+        numberRow
+            .split(" ")
+            .map { it.toLong() }
+            .previousInSequence()
+    }
+    .also { println("Result: $it") }
+
+private fun List<Long>.previousInSequence() = this
+    .buildDiffTree()
+    .let { diffTree ->
+
+        for (diffTreeIndex in (diffTree.size - 1 downTo 0)) {
+            val diffRow = diffTree[diffTreeIndex]
+            //println("$diffTreeIndex diffRow: $diffRow")
+
+            val prependedDiff = if (diffRow.isConstantRow()) {
+                diffRow.plus(diffRow.last())
+            } else {
+                listOf(diffRow.first() - diffTree[diffTreeIndex + 1].first()).plus(diffRow)
+            }
+            //println("prependedDiff: $prependedDiff")
+            diffTree[diffTreeIndex] = prependedDiff
+        }
+
+        diffTree
+    }
+    .first()
+    .first()
+
 
 private fun Path.part1() = this.readLines()
     .sumOf { numberRow ->
