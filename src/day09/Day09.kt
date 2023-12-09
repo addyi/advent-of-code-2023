@@ -3,24 +3,19 @@ package day09
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
-import kotlin.time.measureTime
 
 fun main() {
     val testInput = Path("src/day09/Day09_test.txt")
     val input = Path("src/day09/Day09.txt")
 
+    println("Part 1:")
     testInput.part1().also { check(it == 114L) }
+    input.part1().also { check(it == 1953784198L) }
 
-    measureTime {
-        input.part1().also { check(it == 1953784198L) }
-    }.also { println("Part 1 took $it") }
+    println("Part 2:")
 
     testInput.part2().also { check(it == 2L) }
-
-
-    measureTime {
-        input.part2().also { check(it == 957L) }
-    }.also { println("Part 2 took $it") }
+    input.part2().also { check(it == 957L) }
 }
 
 private fun Path.part2() = this.readLines()
@@ -28,32 +23,20 @@ private fun Path.part2() = this.readLines()
         numberRow
             .split(" ")
             .map { it.toLong() }
-            .previousInSequence()
+            .buildDiffTree()
+            .getPreviousInSequence()
     }
     .also { println("Result: $it") }
 
-private fun List<Long>.previousInSequence() = this
-    .buildDiffTree()
-    .let { diffTree ->
-
-        for (diffTreeIndex in (diffTree.size - 1 downTo 0)) {
-            val diffRow = diffTree[diffTreeIndex]
-            //println("$diffTreeIndex diffRow: $diffRow")
-
-            val prependedDiff = if (diffRow.isConstantRow()) {
-                diffRow.plus(diffRow.last())
-            } else {
-                listOf(diffRow.first() - diffTree[diffTreeIndex + 1].first()).plus(diffRow)
-            }
-            //println("prependedDiff: $prependedDiff")
-            diffTree[diffTreeIndex] = prependedDiff
+private fun List<List<Long>>.getPreviousInSequence(): Long = this
+    .first()
+    .let { currentRow ->
+        if (currentRow.isConstantRow()) {
+            currentRow.first()
+        } else {
+            currentRow.first() - this.drop(1).getPreviousInSequence()
         }
-
-        diffTree
     }
-    .first()
-    .first()
-
 
 private fun Path.part1() = this.readLines()
     .sumOf { numberRow ->
@@ -68,7 +51,7 @@ private fun List<Long>.nextInSequence(): Long = this
     .buildDiffTree()
     .sumOf { it.last() }
 
-private fun List<Long>.buildDiffTree(): MutableList<List<Long>> {
+private fun List<Long>.buildDiffTree(): List<List<Long>> {
     val diffs = mutableListOf(this)
 
     while (!diffs.last().isConstantRow()) {
